@@ -1,0 +1,32 @@
+<!-- This is file is key, it needs to be properly configure to make your plugin work-->
+<library path="basic_plugin"> <!-- I usually use the package name here-->
+
+  <!-- class (one per plugin)
+
+    * name= an identifier for the plugin, i use original_node/transportName_rol ||Note i recommend use as rol "pub" or "sub",since otherwise
+    can produce you issues.
+
+    To ensure functionality, plugins operate as interchangeable classes, necessitating the substitution of an original class predefined
+    with another that can work similar (Your own plugin/class)
+
+    * type="name_space::RolClass . I usually use a common name_space for all my plugins in a package and i name the name_space the same
+    as my package namae for simplicity. This is the class the you create to replace the original one.
+
+    * base_class_type= "original_node::PlugingClassToReplace" . This is the original class you are replacing it.
+
+   -->
+  <class name="image_transport/basic_pub" type="basic_plugin::BasicPublisher" base_class_type="image_transport::PublisherPlugin">
+    <description>
+    This is a custom video publisher plugin for image transport that transforms and msg:image into a
+    personalized interface (Basic). Also flips the image for system comprobation.
+    </description>
+  </class>
+
+
+  <class name="image_transport/basic_sub" type="basic_plugin::BasicSubscriber" base_class_type="image_transport::SubscriberPlugin">
+    <description>
+    This is a custom video publisher plugin for image transport that transforms and msg:Basic back into a msg:image.Once installed
+    this image can be seen with rqt for any image topic.
+    </description>
+  </class>
+</library>
