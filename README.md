@@ -1,65 +1,59 @@
-# ROS2 Tutorial: Image Transport Plugins (C++) [ESPAÑOL/SPANISH]
+# ROS2 Tutorial: Image Transport Plugins (C++) [ENGLISH/INGLES]
+* Author: Agutig (Álvaro "Guti" Gutiérrez García)
+* Last Review: December 2024
+* ROS 2 Version: Humble.
+* Spanish version of the [Tutorial](https://github.com/agutig/ROS2_tutorial_image_transport_plugins/blob/main/README_ESP.md)
 
-* Autor: Agutig (Álvaro "Guti" Gutiérrez García)
-* Ultima revisión: Mayo 2024
-* Version de ROS 2: Humble.
+## Summary
 
-## Resumen
-
-Este tutorial proporciona una explicación minuciosa de cómo desarrollar un plugin de video para el paquete [Image_transport](http://wiki.ros.org/image_transport). Se presenta un ejemplo básico y detallado, denominado 'basic_plugin', que cubre los requisitos mínimos necesarios, incluyendo interfaces y archivos. A partir de este ejemplo, el tutorial progresará hacia conceptos y funciones más complejos. Todo el código utilizado en el tutorial se puede encontrar y utilizar en este [link](https://github.com/agutig/ROS2_tutorial_image_transport_plugins/tree/main/basic_plugin_ws/src"¡)
-
-
-## Introducción
-
-Image_transport es un paquete esencial de ROS 2 diseñado para la captura y transmisión de imágenes y videos a través de la red de nodos. Este paquete soporta el uso de "plugins" que permiten procesar imágenes en bruto antes de su publicación. Estos plugins son modulares y pueden ser intercambiados en tiempo real durante la ejecución, sin necesidad de ser lanzados como un nodo convencional.
-
-Esta característica es particularmente valiosa para el desarrollo de codificadores de imágenes y videos, que optimizan el volumen de datos transmitidos —una consideración crucial dado que los videos pueden ser particularmente grandes— ayudando así a preservar la eficiencia de la red del robot. Los plugins actuales, principalmente utilizados para la codificación, están disponibles en [GitHub.](https://github.com/ros-perception/image_transport_plugins.) Sin embargo, existen múltiples posibilidades aún por explorar, por lo que el primer paso para desarrollar un nuevo plugin sería definir sus funcionalidades deseadas.
+This tutorial provides a detailed explanation of how to develop a video plugin for the [Image_transport](http://wiki.ros.org/image_transport) package. A basic and detailed example, named 'basic_plugin,' is presented, covering the minimum requirements, including interfaces and files. From this example, the tutorial will progress to more complex concepts and functions. All the code used in the tutorial can be found and utilized at this [link](https://github.com/agutig/ROS2_tutorial_image_transport_plugins/tree/main/basic_plugin_ws/src"¡).
 
 
-Los plugins de image_transport se pueden diseñar para dos esquemas principalmente:
+## Introduction
 
-1. **Procesamiento Directo**: Consistiria en recibir una señal de video en formato crudo (msg:image), modificarla según sea necesario, y transmitir la imagen resultante en el mismo formato (msg:image). Un ejemplo práctico de este enfoque es el uso de un plugin que ajusta automáticamente la resolución del video a un aspecto de 16:9, garantizando así las dimensiones de las imagenes, independientemente de la cámara utilizada. Otros usos pueden incluir la rotación de la imagen, transformaciones de color o ajustes similares. Este tipo de procesamiento se realiza mediante un único plugin (plugin publicador).
-   
-2. **Procesamiento Doble (Codecs)**: Este esquema es el utilizado por los codecs de video y consiste en el uso de dos plugins coordinados (publicador-subscriptor) que
-    se comunican entre ellos usando una interfaz distinta a (`msg:image`).Para explicarlo con sencillez, explicaremos su funcionamiento como si estuviera estaria 
-    actuando como tal.
+Image_transport is a key ROS 2 package designed for capturing and transmitting images and videos across the node network. This package supports the use of "plugins" that allow raw images to be processed before publication. These plugins are modular and can be swapped in real time during execution without needing to be launched as a conventional node.
 
-   - **Plugin publicador (Codificador)**: Recibe la señal de video, la codifica reduciendo su tamaño, convierte el contenido en una interfaz distinta
-   que permite hacer una compresion mayor(`msg:codec_interface`), y la transmite.
+This feature is particularly valuable for the development of image and video encoders, which optimize the volume of transmitted data — a critical consideration given the potentially large size of videos — thereby helping to maintain the efficiency of the robot's network. Existing plugins, mainly used for encoding, are available on [GitHub.](https://github.com/ros-perception/image_transport_plugins.) However, there are many possibilities yet to be explored, so the first step in developing a new plugin would be defining its desired functionalities.
 
-   - **Plugin subscriptor (Decodificador)**: Con otro plugin, recibe el mensage (`msg:codec_interface`) y lo decodifica de vuelta a (`msg:image`) para que pueda
-   ser visualizado.
-   
+Image_transport plugins can be designed for two main schemes:
 
-Dado que el esquema de procesamiento con doble plugin es más complejo y también facilita la explicación del esquema de procesamiento directo, se ha decidido ofrecer una explicación detallada de este, acompañada de un ejemplo de código disponible en el repositorio de GitHub en el siguiente [enlace.](https://github.com/ros-perception/image_transport_plugins.). Este código no solo será utilizado para explicar el tutorial, sino que también servirá como referencia para proyectos similares. Además, se incluye un ejemplo de una interfaz personalizada que se utiliza para simplificar el proceso.
+1. **Direct Processing**: This consists of receiving a video signal in raw format (`msg:image`), modifying it as needed, and transmitting the resulting image in the same format (`msg:image`). A practical example of this approach is using a plugin that automatically adjusts the video resolution to a 16:9 aspect ratio, thus ensuring consistent image dimensions regardless of the camera used. Other applications may include image rotation, color transformations, or similar adjustments. This type of processing is performed by a single plugin (publisher plugin).
 
-El tutorial comenzará con el ejemplo más sencillo posible, y se irá ampliando gradualmente con funciones adicionales para explicar aspectos más avanzados de los plugins de image_transport.
+2. **Dual Processing (Codecs)**: This scheme is used by video codecs and involves using two coordinated plugins (publisher-subscriber) that communicate using an interface other than (`msg:image`). To simplify its explanation, its functionality will be described as follows:
 
-## Otras indicaciones
+   - **Publisher Plugin (Encoder)**: Receives the video signal, encodes it to reduce its size, converts the content into a different interface that allows greater compression (`msg:codec_interface`), and transmits it.
 
-Además, es importante destacar que existen dos tipos de implementaciones de clases para los plugins de transporte de imágenes:
+   - **Subscriber Plugin (Decoder)**: Another plugin receives the message (`msg:codec_interface`) and decodes it back into (`msg:image`) so it can be displayed.
+
+Since the dual plugin processing scheme is more complex and also facilitates explaining the direct processing scheme, a detailed explanation of this will be provided, accompanied by a code example available in the GitHub repository at the following [link.](https://github.com/ros-perception/image_transport_plugins.) This code will not only be used to explain the tutorial but also serve as a reference for similar projects. Additionally, an example of a custom interface is included to simplify the process.
+
+The tutorial will begin with the simplest possible example and will gradually expand with additional features to explain more advanced aspects of image_transport plugins.
+
+## Additional Notes
+
+It is also important to note that there are two types of class implementations for image transport plugins:
 
 - `image_transport::PublisherPlugin<>` | `image_transport::SubscriberPlugin<>`
 - `image_transport::SimplePublisherPlugin<>` | `image_transport::SimpleSubscriberPlugin<>`
 
-La versión original (`PublisherPlugin` y `SubscriberPlugin`) es más completa pero menos utilizada en implementaciones actuales. La versión simplificada (`SimplePublisherPlugin` y `SimpleSubscriberPlugin`) es más extendida y permite una implementación más sencilla con más parámetros por defecto.
+The original version (`PublisherPlugin` and `SubscriberPlugin`) is more comprehensive but less commonly used in current implementations. The simplified version (`SimplePublisherPlugin` and `SimpleSubscriberPlugin`) is more widespread and allows for easier implementation with more default parameters.
 
-## Tutorial Básico
 
-### Paso 1: Crear el Paquete
-Crea el paquete como se hace habitualmente. En este paquete alamacenaremos el codigo de nuestros plugins y conviene no mezclar código con otras cosas que no 
-sea exclusivas de estos plugins para mantenerlo todo limpio y claro.
+## Basic Tutorial
+
+### Step 1: Create the Package
+Create the package as you would normally. In this package, we will store the code for our plugins, and it is advisable not to mix this code with anything unrelated to these plugins to keep everything clean and organized.
+
 
 ```Terminal
 ros2 pkg create --build-type ament_cmake <package_name>
 ```
 
-### Paso 2: Crear una interfaz personalizada
-Si estas siguiendo un esquema de un unico plugin subscriptor este paso te lo podrás saltar porque solo manejaras interfaces de tipo sensor_msgs::msg::Image tanto
-a la entrada como a la salida del plugin. Sin embargo, para esquemas bi-plugins como puede ser un codec de video si será necesario diseñar una interfaz personalizada
-para la comunicacion entre el plugin publicador y el plugin subscriptor.
+### Step 2: Create a Custom Interface
+If you are following a single subscriber plugin scheme, you can skip this step since you will only handle `sensor_msgs::msg::Image` interfaces for both input and output. However, for dual-plugin schemes, such as a video codec, it will be necessary to design a custom interface for communication between the publisher plugin and the subscriber plugin.
 
-Para este tutorial actual, se desarrolló una interfaz específica que permite descomponer una imagen en bruto en sus tres canales principales: Rojo (R), Verde (G) y Azul (B). Cada canal será transformado de una matriz de dimensiones específicas (por ejemplo, 1280x720) a un vector plano con una longitud equivalente al número de píxeles de la imagen (en este caso, 921600). Además, se incorporan dos variables enteras, original_width y original_height, que permiten reorganizar los vectores y reconstruir la imagen en sus dimensiones originales en la interfaz propuesta.
+For this tutorial, a specific interface was developed that allows breaking down a raw image into its three main channels: Red (R), Green (G), and Blue (B). Each channel will be transformed from a matrix of specific dimensions (e.g., 1280x720) into a flat vector with a length equivalent to the number of pixels in the image (in this case, 921,600). Additionally, two integer variables, `original_width` and `original_height`, are included to reorganize the vectors and reconstruct the image to its original dimensions in the proposed interface.
+
 
 ```cpp
 # BASIC.msg
@@ -71,104 +65,99 @@ uint8[] vector_r #R matrix flattened into a vector
 uint8[] vector_g #G matrix flattened into a vector 
 uint8[] vector_b #B matrix flattened into a vector 
 ```
+To create a custom interface, I recommend following this other tutorial I have uploaded at this [link](https://github.com/agutig/ROS2_tutorial_custom_interfaces).
 
-Para hacer una interfaz personalizada, te recomiendo que sigas este otro tutorial que tengo subido en este [link]("")
+### Step 3: Publisher Plugin Header Definition (.h)
 
+Create the publisher definition in the `include` folder within the `publisher.h` file. This file will require:
 
-### Paso 3: Definición Header del plugin Publisher (.h)
+- **Namespace**: Use a namespace to identify the plugin classes. Whether you are using an individual plugin or combining a publisher plugin with a subscriber, it is advisable to use the same namespace throughout the project for simplicity. Typically, the package name is used.
 
-Crea en la carpeta `include` la definición del publisher en el archivo `publisher.h`. Este archivo necesitará:
+- **Method `getTransportName()`**: This method returns the identifier for the video stream, which is crucial for correct communication between plugins in dual-plugin structures. When using an image transport plugin, a suffix is usually added to the topic `/camera_image`, such as `/camera_image/basic`.
 
-- **Namespace**: Utiliza un namespace para identificar las clases del plugin. Independientemente de si usas un plugin individual o combinas un plugin publicador con un subscriptor, es recomendable utilizar el mismo namespace a lo largo del proyecto para mantener la sencillez. Normalmente, se utiliza el nombre del paquete.
-  
-- **Método `getTransportName()`**: Este método devuelve el identificador del flujo de video, el cual es crucial para la comunicación correcta entre los plugins en estructuras de doble plugin. Al utilizar un plugin de transporte de imágenes, normalmente se añade un sufijo al tópico `/camera_image`, como por ejemplo `/camera_image/basic`.
-
-- **Función de Publicación**: Define la función que modificará el mensaje y lo retransmitirá. La implementación de esta función se especificará más adelante y no se incluye directamente en el archivo `.h`.
+- **Publish Function**: Define the function that will modify the message and retransmit it. The implementation of this function will be specified later and is not included directly in the `.h` file.
 
   ```cpp
   virtual void publish(const sensor_msgs::msg::Image& message, const PublishFn& publish_fn) const override;
+  ```
 
-Finalmente, el codigo de este archivo quedaria como:
+Finally, the code of this file would look like:
 
 ```cpp
-    #ifndef BASIC_PLUGIN_BASIC_SUBSCRIBER_H
-    #define BASIC_PLUGIN_BASIC_SUBSCRIBER_H
+  #ifndef BASIC_PLUGIN_BASIC_SUBSCRIBER_H
+  #define BASIC_PLUGIN_BASIC_SUBSCRIBER_H
 
-    #include <rclcpp/rclcpp.hpp>
-    #include <image_transport/simple_subscriber_plugin.hpp>
-    #include <sensor_msgs/msg/image.hpp>
+  #include <rclcpp/rclcpp.hpp>
+  #include <image_transport/simple_subscriber_plugin.hpp>
+  #include <sensor_msgs/msg/image.hpp>
 
-    #include "coded_interfaces/msg/basic.hpp" // Import the personalized interface.
+  #include "coded_interfaces/msg/basic.hpp" // Import the personalized interface.
 
-    namespace basic_plugin { //IMPORTANT THE NAMESPACE, to keep it clean i made the same namespace for both pub and sub plugins
+  namespace basic_plugin { //IMPORTANT THE NAMESPACE, to keep it clean i made the same namespace for both pub and sub plugins
 
-    /**
-     * A SimpleSubscriberPlugin example for understanding image_transport_plugins by
-     * subscribing to coded_interfaces::msg::Basic and converting it to sensor_msgs::msg::Image.
-     */
+  /**
+   * A SimpleSubscriberPlugin example for understanding image_transport_plugins by
+   * subscribing to coded_interfaces::msg::Basic and converting it to sensor_msgs::msg::Image.
+   */
 
-    class BasicSubscriber final : public image_transport::SimpleSubscriberPlugin<coded_interfaces::msg::Basic>
-    /**
-     * Base class for the "basic" subscriber plugin. It converts:
-     * video "coded" (coded_interfaces::msg::Basic) --> video raw (sensor_msgs::msg::Image)
-    */
-    {
-    public:
-    /** ~BasicSubscriber
-     * 
-     * Destructor for BasicSubscriber.
-     */
-    virtual ~BasicSubscriber() = default;
+  class BasicSubscriber final : public image_transport::SimpleSubscriberPlugin<coded_interfaces::msg::Basic>
+  /**
+   * Base class for the "basic" subscriber plugin. It converts:
+   * video "coded" (coded_interfaces::msg::Basic) --> video raw (sensor_msgs::msg::Image)
+  */
+  {
+  public:
+  /** ~BasicSubscriber
+   * 
+   * Destructor for BasicSubscriber.
+   */
+  virtual ~BasicSubscriber() = default;
 
-    /** getTransportName
-     * 
-     * Gets the transport name for this plugin. This is the identifier of the full transport (both plugins)
-     * (subscriber and publisher) and has to be the same in both header files.
-     * 
-     */
-    virtual std::string getTransportName() const
-    {
-        return "basic";
-    }
+  /** getTransportName
+   * 
+   * Gets the transport name for this plugin. This is the identifier of the full transport (both plugins)
+   * (subscriber and publisher) and has to be the same in both header files.
+   * 
+   */
+  virtual std::string getTransportName() const
+  {
+      return "basic";
+  }
 
-    protected:
+  protected:
 
-    /** internalCallback
-     * 
-     * Callback method for handling coded_interfaces::msg::Basic messages.
-     * Converts the coded_interfaces::msg::Basic message to sensor_msgs::msg::Image.
-     * 
-     * - message The received coded_interfaces::msg::Basic message.
-     * - user_cb The callback function to call with the converted sensor_msgs::msg::Image message.
-     */
+  /** internalCallback
+   * 
+   * Callback method for handling coded_interfaces::msg::Basic messages.
+   * Converts the coded_interfaces::msg::Basic message to sensor_msgs::msg::Image.
+   * 
+   * - message The received coded_interfaces::msg::Basic message.
+   * - user_cb The callback function to call with the converted sensor_msgs::msg::Image message.
+   */
 
-    void internalCallback(const coded_interfaces::msg::Basic::ConstSharedPtr& message, const Callback& user_cb) override;
+  void internalCallback(const coded_interfaces::msg::Basic::ConstSharedPtr& message, const Callback& user_cb) override;
 
-    }; // namespace basic_subscriber
-    }
+  }; // namespace basic_subscriber
+  }
 
-    #endif // BASIC_PLUGIN_BASIC_SUBSCRIBER_H
+  #endif // BASIC_PLUGIN_BASIC_SUBSCRIBER_H    
 ```
 
 
-### Paso 4: Descripción del Publisher (.cpp)
-Luego se pasará a crear la implementación de la clase, para ello creamos un archivo con el mismo nombre pero con extensión .cpp en la carpeta src. En este archivo:
+### Step 4: Publisher Description (.cpp)
+Next, proceed to create the class implementation by creating a file with the same name but with a `.cpp` extension in the `src` folder. In this file:
 
-* Utilizaremos el namespace definido anteriormente
-* Crearemos la función que se llamará cada vez que reciba un mensaje de video (publish). 
+* Use the previously defined namespace.
+* Create the function that will be called each time a video message is received (`publish`).
 
 ```cpp
 void BASICPublisher::publish(const sensor_msgs::msg::Image& message, const PublishFn& publish_fn) const
 ```
-
-Donde: 
-* Dentro de esta función, con el parámetro de entrada podremos llamar a la función que se pasa como parámetro de entrada PublishFn, publicará el nuevo mensaje
-* El mensaje recibido se encuentra en la variable message.
-
-El codigo seria algo como esto:
+Where:
+* Within this function, using the input parameter, you can call the `PublishFn` function (passed as an input parameter) to publish the new message.
+* The received message is stored in the variable `message`.
 
 ```cpp
-
 #include "basic_plugin/basic_publisher.h"
 #include <pluginlib/class_list_macros.hpp>
 #include <cv_bridge/cv_bridge.h>
@@ -243,19 +232,17 @@ namespace basic_plugin { //IMPORTANT THE NAMESPACE.
     RCLCPP_INFO(rclcpp::get_logger("basic_publisher"), "Published message on topic: %s with transport: %s", this->getTopic().c_str(), getTransportName().c_str());
   }
 } // namespace basic_publisher
-
 ```
 
-### Paso 5: Definición del Header del plugin subscriptor (.h)
+### Step 5: Subscriber Plugin Header Definition (.h)
 
-De forma similar al paso 2, crearemos un archivo "x_subscriber.h" en include/nombre_paquete in en el una clase subscriber que herede de image_transport::SimpleSubscriberPlugin. En este archivo, tendremos que tener en cuenta los dos siguientes puntos claves:
+Similar to step 2, create a file named `x_subscriber.h` in `include/package_name`, containing a subscriber class that inherits from `image_transport::SimpleSubscriberPlugin`. In this file, you should consider the following key points:
 
-* getTransportName() debe devolver el mismo valor que el publisher para poder coordinarse correctamente ambos plugins
-* internalCallback será la funcion que se activará cuando reciba un mensaje. Su primer parametro "message" es un puntero que referencia
-  a este mensaje recibido por lo que debe ser un puntero que coincida con el tipo diseñado de nuestra interfaz (coded_interfaces::msg::Basic::ConstSharedPtr&)
-* Por claridad, recomiendo utilizar el mismo namespace anterior
+* `getTransportName()` must return the same value as the publisher to ensure proper coordination between both plugins.
+* `internalCallback` will be the function triggered when a message is received. Its first parameter, `message`, is a pointer referencing the received message, so it must match the type designed for your interface (`coded_interfaces::msg::Basic::ConstSharedPtr&`).
+* For clarity, it is recommended to use the same namespace as before.
 
-El codigo seria algo como esto:
+The code looks like this:
 
 ```cpp
 #ifndef BASIC_PLUGIN_BASIC_SUBSCRIBER_H
@@ -318,18 +305,13 @@ protected:
 
 ```
 
-### Paso 6: Descripción del Subscriber (.cpp)
+### Step 6: Subscriber Description (.cpp)
 
-En este archivo nos centraremos especialmente en diseñar el codigo para el método internalCallback, el cual es el que será lanzado
-cuando llegue un mensaje del plugin publicador de tipo coded_interfaces::msg::Basic . Para ello, operaremos el contenido del message
-el cual podremos acceder a el a traves de la sintaxis message->nombre_dato. Operaremos la información contenida en este mensaje para
-reconstruir una imagen que pueda ser entendida como video y publicarlo, es decir, convertieremos los datos a la interfaz
-sensor_msgs::msg::Image.  
+In this file, we will focus on designing the code for the `internalCallback` method, which will be triggered when a message of type `coded_interfaces::msg::Basic` arrives from the publisher plugin. To do this, we will operate on the content of `message`, which can be accessed using the syntax `message->data_name`. We will process the information contained in this message to reconstruct an image that can be interpreted as video and publish it, i.e., convert the data to the `sensor_msgs::msg::Image` interface.
 
-Es en este proceso:
+In this process:
 
-1. Crearemos un mensaje vacio de tipo sensor_msgs::msg::Image y lo rellenaremos con información que conocemos. La interfaz original
-   la podemos encontrar en este [link](https://docs.ros.org/en/noetic/api/sensor_msgs/html/msg/Image.html)
+1. Create an empty message of type `sensor_msgs::msg::Image` and populate it with information that is known. The original interface can be found at this [link](https://docs.ros.org/en/noetic/api/sensor_msgs/html/msg/Image.html).
 
   ```msg
       # This message contains an uncompressed image
@@ -358,13 +340,12 @@ Es en este proceso:
   ```
 
 
-2. Extraeremos los vectores R,G,B de la interfaz y los redimensionaremos al ancho y alto de la imagen (original_height y original_width)
-3. Reorganizamos las matrices para añadirlo al vector uint8[] data
+2. Extract the R, G, and B vectors from the interface and resize them to match the image's width and height (`original_height` and `original_width`).
+3. Rearrange the matrices to add them to the `uint8[] data` vector.
 
-Notese que se ha decidido NO reinvertir la imagen para asegurarnos que ambos plugins funcionan correctamete con un simple vistazo
-al video resultante.
+Note that it was decided NOT to invert the image to ensure that both plugins work correctly by simply observing the resulting video.
 
-Un ejemplo de un codigo correcto sería: 
+An example would be: 
 
 ```cpp
 
@@ -432,11 +413,10 @@ namespace basic_plugin {
 
 ```
 
+### Step 7: Create a `manifest.cpp` File
 
-### Paso 7: Crear un archivo manifest.cpp.
+The purpose of this file is simply to pair which of your defined classes can replace the classes in image transport through `<pluginlib/class_list_macros.hpp>`. This is achieved by adding the following lines of code:
 
-El objetivo de este archivo es simplemente reconocer a pares cuales de tus clases definidas pueden reemplazar a las clases de image transport a traves
-de <pluginlib/class_list_macros.hpp> , por lo que simplemente consiste en añadir estas lineas de codigo:
 
 ```cpp
 #include <pluginlib/class_list_macros.hpp>
@@ -448,10 +428,9 @@ PLUGINLIB_EXPORT_CLASS(yourPluginPackage::PluginPublisher, image_transport::Publ
 PLUGINLIB_EXPORT_CLASS(yourPluginPackage::PluginSubscriber, image_transport::SubscriberPlugin)
 ```
 
-Como tal, estas lineas pueden ser añadidas respectivamente tanto en el publisher.cpp como el subscriber.cpp, pero siguiendo la estructura que habitualmente
-se utiliza para estos plugins, es mas claro dejarlas separadas en un archivo .cpp aparte ubicado en la carpeta /src como vamos a exportar los plugins. 
+These lines can technically be added directly to both `publisher.cpp` and `subscriber.cpp`. However, following the structure commonly used for these plugins, it is clearer to keep them in a separate `.cpp` file located in the `/src` folder, as this is where the plugins will be exported.
 
-Siguiendo el ejemplo, el resultado de codigo se veria asi:
+
 
  ```cpp
   #include <pluginlib/class_list_macros.hpp>
@@ -463,13 +442,14 @@ Siguiendo el ejemplo, el resultado de codigo se veria asi:
   PLUGINLIB_EXPORT_CLASS(basic_plugin::BasicSubscriber, image_transport::SubscriberPlugin)
  ```
 
-### Paso 8: plugins.xml
+### Step 8: `plugins.xml`
 
-Finalmente, creamos un archivo .xml que defina cómo se van a configurar los plugins. Idealmente debería llamarse algo como plugins.xml o transport_image_plugins.xml.
-Este fichero es clave ya que permite identificar los plugins creados y las clases asociadas. Este fichero debe serguir esta estructura donde cada <class> será un plugin
+Finally, create an `.xml` file to define how the plugins will be configured. Ideally, it should be named something like `plugins.xml` or `transport_image_plugins.xml`. 
+
+This file is crucial as it identifies the created plugins and their associated classes. The file should follow this structure, where each `<class>` represents a plugin:
 
 ```xml
-<library path="nombre_paquete">
+<library path="packet_name">
 
   <class>Plugin1</class>
   <class>Plugin1</class>
@@ -479,28 +459,26 @@ Este fichero es clave ya que permite identificar los plugins creados y las clase
 </library>
 ```
 
-y cada etiqueta class debe tener los siguientes parametros:
+and each class tag must have the following parameters:
 
 ```xml
   <class name="nombre" type="name_space::RolClass" base_class_type="image_transport::PublisherPlugin" >
 ```
 
-  * name= un identificador para el plugin, DEBE seguir la estructura de nombre_paquete_original + "/" + nombre del transport definido en las cabeceras del plugin publicador o del subscriptor (IMPORTANTE) + "_pub" o "_sub" correspondientemente, ya que de otro modo dará error (¡y no avisará!). En nuestro caso seria image_transport + "/" + basic + _pub o _sub.
+  * **name**: An identifier for the plugin. It MUST follow the structure `original_package_name` + "/" + the transport name defined in the headers of the publisher or subscriber plugin (IMPORTANT) + "_pub" or "_sub" accordingly. Otherwise, it will cause an error (and it won’t notify you!). In our case, it would be `image_transport/basic_pub` or `image_transport/basic_sub`.
 
-  Nota: Este error es muy habitual. Se hace especial hincapié en que esto quede bien configurado.
+  **Note**: This error is very common. Special emphasis is placed on ensuring this is configured correctly.
 
   <img src="_other_files/important.png" width="900" height="200">
 
-  Para garantizar la funcionalidad, los plugins operan como clases intercambiables, lo que requiere la sustitución de una clase original predefinida
-  por otra que pueda funcionar de manera similar (Tu propio plugin/clase)
+  To ensure functionality, plugins operate as interchangeable classes, which requires replacing a predefined original class with another that can function similarly (your own plugin/class).
 
-  * tipo="name_space::RolClass". Normalmente uso un nombre de espacio común para todos mis plugins en un paquete y nombro el espacio de nombres igual
-  que el nombre de mi paquete por simplicidad. Esta es la clase que creas para reemplazar la original.
+  * **type**: `"namespace::RoleClass"`. I usually use a common namespace for all my plugins in a package and name the namespace the same as my package for simplicity. This is the class you create to replace the original.
 
-  * base_class_type= "original_node::PlugingClassToReplace". Esta es la clase original que estás reemplazando.
+  * **base_class_type**: `"original_node::PluginClassToReplace"`. This is the original class you are replacing.
 
 
-Asi se veria un ejemplo de codigo de este fichero: 
+Here is an example of code from this file: 
 
 ```xml
 <!-- This is file is key, it needs to be properly configure to make your plugin work-->
@@ -537,11 +515,10 @@ Asi se veria un ejemplo de codigo de este fichero:
 </library>
 ```
 
+### Step 9: Modify the `CMakeLists.txt` File
 
-### Paso 9: Modificaremos el archivo CMakeLists.txt
+The `CMakeLists.txt` file will primarily function as usual, adding the necessary dependencies for your code and modifying other compilation sections. However, you will also need to add these lines to ensure the plugins can be exported.
 
-El archivo CMakeLists.txt principalmente funcionará como siempre, añadiendo las dependencias necesarias de nuestro codigo y modificando otros
-apartados de la compilacion, sin embargo, tambien necesitaremos añadirle estas lineas para que los plugins puedan ser exportados.
 
 ```txt
 # Dependencies, the same like always
@@ -663,9 +640,10 @@ ament_package()
 
 ```
 
-### Paso 10: Modificamos el package.xml 
+### Step 10: Modify the package.xml 
 
-Por ultimo, solo quedará modificar el package.xml . Este paso es muy sencillito y consiste en añadir las siguientes lineas:
+Finally, we only have to modify the package.xml . This step is very simple and consists of adding the following lines:
+
 ```xml
 <depend>pluginlib</depend> <!-- Add this -->
 <depend>cv_bridge</depend>
@@ -674,7 +652,7 @@ Por ultimo, solo quedará modificar el package.xml . Este paso es muy sencillito
 <image_transport plugin="${prefix}/plugins.xml" /> <!-- Add this -->
 ```
 
-El resultado final de este archivo se podría ver como: 
+The final result of this file could look like: 
 ```xml
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
@@ -704,8 +682,8 @@ El resultado final de este archivo se podría ver como:
 </package>
 ```
 
-Si has seguido estos pasos, habremos completado el tutorial basico y solo será necesario compilar y comprobar que todo funciona correctamente.
-Tu estructura de carpetas deberia ser algo similar a:
+If you have followed these steps, we will have completed the basic tutorial and it will only be necessary to compile and check that everything works correctly.
+Your folder structure should look something similar to:
 
 ```Ascii
 basic_plugin_ws
@@ -728,75 +706,79 @@ basic_plugin_ws
     │           basic_subscriber.cpp
 ```
 
-### Paso 11:Compilar
+### Step 11: Compile
 
-Compila el worksapce donde estes trabajando para asegurar que no se ha cometido ningun error tipografico. Si todo esta bien, deberian poder encontrarse
-los plugins cuando se lance image_transport.
+Compile the workspace you are working in to ensure no typographical errors have been made. If everything is correct, the plugins should be detected when `image_transport` is launched.
 
 ```terminal
 colcon build
 source install/setup.bash
 ```
 
-Como los plugins como tal no pueden ser lanzados como si se harian con un nodo normal, para comporbar si todo ha salido bien, he creado un conjunto de herramientas que se pueden encontrar en [cam_video_example](https://github.com/agutig/ROS2_tutorial_image_transport_plugins/tree/main/other_tools_ws/src/cam_video_example). En concreto, nos centraremos en el nodo camera_publisher (camera_publisher.cpp) que comenzará un flujo de video.
+Since plugins cannot be launched like a regular node, to verify if everything is working correctly, I have created a set of tools available at [cam_video_example](https://github.com/agutig/ROS2_tutorial_image_transport_plugins/tree/main/other_tools_ws/src/cam_video_example). Specifically, we will focus on the `camera_publisher` node (`camera_publisher.cpp`), which will start a video stream.
 
-1. Copia y pega a tu workspace el contenido del paquete cam_video_example y prueba
-2. Compilalo y Sourcealo (paso 11)
-3. Lanza el nodo camera_publisher
+1. Copy and paste the contents of the `cam_video_example` package into your workspace and test it.
+2. Compile and source it (Step 11).
+3. Launch the `camera_publisher` node.
+
 
 ```terminal
 ros2 run cam_video_example camera_publisher
 ```
 
-4. Abre una nueva terminal en el workspace, sourcea el codigo y abre rqt
+4. Open a new terminal in the workspace, source the code, and launch `rqt`.
+
 
 ```terminal
 source install/setup.bash
 rqt
 ```
-rqt es una herramienta de ros que nos permite visualizar topics facilmente y con ella podremos ver el flujo de video abierto, para ello,
-activaremos un visualizador de imagen como 
+
+`rqt` is a ROS tool that allows us to easily visualize topics, and with it, we can see the opened video stream. To do this, activate an image viewer such as:
+
 <img src="_other_files/other.png" width="500" height="300">
 
-Una vez abierto el visualizador, podremos selecionar el topic que abremos abierto (/camera_image) donde se mostrará la imagen en raw. Si hacemos click en ese boton
-deberiamos ser capaces de encontrar versiones de este mismo topic con "/" + los image transports de nuestros plugins.
+Once the viewer is open, you can select the topic we opened (`/camera_image`), where the raw image will be displayed. By clicking on that button, you should be able to find versions of this same topic with `/` + the image transports of your plugins.
 
 <img src="_other_files/other2.png" width="200">
 
 <img src="_other_files/other3.png" width="200">
 
+If these three conditions are met, everything is working correctly:
 
-Si se cumplen estas tres condiciones, estará funcionando correctamente:
+  * The `rqt` viewer displays the video image inverted.
+  * The terminal where you launched `rqt` shows the log `"internalCallback activated"`.
+  * The terminal where you launched `cam_video_example` shows the log `"Published message on topic: /camera_image/your_transport with transport: your_transport"`.
 
-  * El visualizador de rqt muestra la imagen de video invertida.
-  * La terminal donde abriste rqt muestra el log  "internalCallback activated"
-  * La terminal donde lanzaste el cam_video_example muestra el log "Published message on topic: /camera_image/tu_transport with transport: tu_transport"
+**Note**: The logs are marked with comments in the `.cpp` files so that they can be removed when no longer needed.
 
-Nota: Los logs estan marcados con comentarios en los archivos .cpp para que se borren cuando no sean necesarios.
+Finally, we have covered the simplest possible implementation of an `image_transport` plugin. However, there are still functions within the `SimpleImagePublisher` and `SimpleImageSubscriber` classes to explore, which we can use to model communication to our preferences. Specifically, we will address the following situation.
 
+If you launched the video with `cam_video_example`, you might have encountered one of the following errors/warnings in the `rqt` terminal:
 
-Finalmente habriamos cubierto la implementacion mas sencilla posible de un plugin de image transport, sin embargo, aun quedan funciones por explorar dentro de las clases
-SimpleImagePubliser y SimpleImageSubscriber que podemos utilizar para modelar la comunicacion a nuestro gusto. En concreto abordaremos la siguiente situación.
+* `[WARN] [1722273109.670950949] [rqt_gui_cpp_node_40296]: New publisher discovered on topic '/camera_image/basic', offering incompatible QoS. No messages will be sent to it. Last incompatible policy: RELIABILITY_QOS_POLICY`
 
-Es posible que en el proceso si lanzaste el video con cam_video_example, que te hayas encontrado alguno de los siguientes errores/warnings en la terminal rqt
+* `[ERROR] [1722273112.346690801] [rqt_gui_cpp_node_40296]: SubscriberPlugin::subscribeImpl with five arguments has not been overridden`
 
-* "[WARN] [1722273109.670950949] [rqt_gui_cpp_node_40296]: New publisher discovered on topic '/camera_image/basic', offering incompatible QoS. No messages will be sent to it. Last incompatible policy: RELIABILITY_QOS_POLICY"
-
-* "[ERROR] [1722273112.346690801] [rqt_gui_cpp_node_40296]: SubscriberPlugin::subscribeImpl with five arguments has not been overridden"
-
-Esto se debe a que SimplePublisher presenta el metodo advertiseImpl y SimpleSubscriber presenta el metodo subscribeImpl configurados por defecto internamente con la finalidad de simplificar la implementacion , los cuales son los encargados de anunciar y configuar la QoS de la comunicacion realizada entre plugins. Aunque presentan una configuración por defecto sólida es posible que generen problemas menores a la hora de implementar los plugins por lo que convendrá reescribirlos para asegurar su correcto funcionamiento.
+This happens because `SimplePublisher` and `SimpleSubscriber` internally configure the `advertiseImpl` and `subscribeImpl` methods with default settings to simplify the implementation. These methods are responsible for announcing and configuring the QoS policies of the communication between plugins. While their default configuration is robust, they may cause minor issues when implementing plugins, making it advisable to override them to ensure proper functionality.
 
 
-## Métodos IMPL
+## IMPL Methods
 
-Como se ha explicado con anterioridad, los métodos IMPL (advertiseImpl, subscribeImpl) son métodos preparados para configurar las QoS de comunicación entre plugins y estos son NO necesarios de configurar salvo que puedan estar generando algun error o explicitamente se desee cambiar la QoS entre plugin publicador y subscripto. Por defecto, se hará una implementación de estos métodos que replicará la QoS que recibe el flujo de video original sin entrar en una mayor complejidad pero en el mismo codigo del ejemplo. Estos métodos requieren una coordinación entre ellos por lo que una vez implementado uno, se recomienda implementar el otro.
+As previously explained, the IMPL methods (`advertiseImpl`, `subscribeImpl`) are designed to configure the QoS settings for communication between plugins. These methods are NOT required unless errors are occurring, or there is an explicit need to change the QoS between the publisher and subscriber plugins. By default, these methods replicate the QoS of the original video stream without adding extra complexity, as demonstrated in the example code. Since these methods require coordination, it is recommended to implement both if one is modified.
 
-Todo el codigo de esta segunda parte del tutorial se puede encontrar en: basic_plugin_ws/src/basic_plugin_impl
+From a technical perspective, it is recommended to configure real-time video transmission using a "non-reliable" scheme (Best-effort), allowing the middleware to use the UDP protocol. Unlike TCP, UDP does not implement packet retransmission mechanisms in case of loss, which is advantageous for applications requiring low latency, such as real-time video.
 
- * ### advertiseImpl (Ubicado en el SimplePublisher)
-  (breve descripcion)
+When a packet is initially lost, it results in a degradation of video quality. Attempting to recover the lost packet via retransmission would be unnecessary, as the corresponding content will have been superseded by newer packets, causing the lost packet to be discarded. Additionally, retransmissions consume bandwidth that could otherwise be allocated to current packets, increasing network congestion. This congestion can create a domino effect that affects video smoothness and may even block the transmission by saturating network resources.
 
-  1. Definimos el método en el basic_publisher.h añadiendo las siguientes líneas.
+However, forcing a QoS configuration different from that of the raw transport can cause incompatibilities. Therefore, for this tutorial, we will simply configure the QoS to replicate the original stream's configuration.
+
+All the code for this second part of the tutorial can be found at: `basic_plugin_ws/src/basic_plugin_impl`.
+
+
+ * ### advertiseImpl (Located in the SimplePublisher)
+
+  1. We define the method in the basic_publisher.h adding the following lines.
   ```cpp
     void advertiseImpl(
       rclcpp::Node* node,
@@ -805,16 +787,15 @@ Todo el codigo de esta segunda parte del tutorial se puede encontrar en: basic_p
       rclcpp::PublisherOptions options);
   ```
 
-  2. También definimos un publisher en el basic_publisher.h
+  2. We also define a publisher in basic_publisher.h
   ```cpp
   rclcpp::Publisher<coded_interfaces::msg::Basic>::SharedPtr publisher_;
   ```
 
 
-  3. Finalmente escribimos la implementacion del método en el archivo basic_publisher.cpp
+  3. Finally we write the implementation of the method in the basic_publisher.cpp file.
 
-  La implementación del método es un poco abierta según el criterio de QoS que se busque pero aquín te dejo una implementación
-  que replica la QoS de los datos que recive. Recuerda que debe ser la misma configuración en el método SubscribeImpl que vamos a hacer.
+  The implementation of the method is a bit open depending on the QoS criteria you are looking for but here I leave you an implementation that replicates the QoS of the data it receives. Remember that it must be the same configuration in the SubscribeImpl method that we are going to do.
 
   ```
   void BasicPublisher::advertiseImpl(
@@ -838,10 +819,9 @@ Todo el codigo de esta segunda parte del tutorial se puede encontrar en: basic_p
   ```
 
 
- * ### subscribeImpl (Ubicado en el SimpleSubscriber )
-  (breve descripcion)
+ * ### subscribeImpl (Located in the SimpleSubscriber )
 
-  1. Definimos el método en el basic_subscriber.h añadiendo las siguientes líneas.
+  1. We define the method in the basic_subscriber.h by adding the following lines.
   ```cpp
     void subscribeImpl(
     rclcpp::Node* node,
@@ -851,15 +831,15 @@ Todo el codigo de esta segunda parte del tutorial se puede encontrar en: basic_p
     rclcpp::SubscriptionOptions options);
   ```
 
-  2. También definimos un publisher en el basic_subscriber.h
+  2. We also define a publisher in basic_subscriber.h
 
   ```cpp
   rclcpp::Subscription<coded_interfaces::msg::Basic>::SharedPtr subscription_;
   ```
 
-  3. Finalmente escribimos la implementacion del método en el archivo basic_subscriber.cpp
+  3. Finally we write the implementation of the method in the file basic_subscriber.cpp
 
-  La implementación del método debe representar la misma configuración previamente establecida en el advertiseImpl.
+  The implementation of the method must represent the same configuration previously established in the advertiseImpl (or at least, compatible)
 
   ```cpp
   void BasicSubscriber::subscribeImpl(
@@ -871,7 +851,6 @@ Todo el codigo de esta segunda parte del tutorial se puede encontrar en: basic_p
 
   std::string transport_topic = base_topic + "/" + getTransportName();
 
-    rclcpp::QoS qos_profile = rclcpp::QoS(rclcpp::KeepLast(10));
     qos_profile.reliability(custom_qos.reliability);
     qos_profile.durability(custom_qos.durability);
     qos_profile.liveliness(custom_qos.liveliness);
