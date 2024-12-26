@@ -866,7 +866,7 @@ All the code for this second part of the tutorial can be found at: `basic_plugin
   ```
 
 
-## Referencias
+## References
 
 * [http://wiki.ros.org/pluginlib](http://wiki.ros.org/pluginlib) 
 * [https://github.com/ros-perception/image_transport_plugins](https://github.com/ros-perception/image_transport_plugins)
